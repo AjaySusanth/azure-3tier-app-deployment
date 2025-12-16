@@ -30,9 +30,8 @@ services:
 
   nginx:
     build:
-      context: ./frontend  # <--- Build Context is here
-      dockerfile: Dockerfile
-
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
       - "8080:80"
     depends_on:
