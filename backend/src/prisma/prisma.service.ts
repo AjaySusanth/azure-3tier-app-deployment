@@ -1,35 +1,66 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client'; 
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg'; 
-import { ConfigService } from '@nestjs/config'; 
+import { Pool } from 'pg';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  implements OnModuleInit, OnModuleDestroy
+{
+  private readonly logger = new Logger(PrismaService.name);
+  private prisma: PrismaClient | null = null;
 
   constructor(private configService: ConfigService) {
+    const connectionString =
+      this.configService.get<string>('DATABASE_URL');
 
-    const connectionString = configService.get<string>('DATABASE_URL');
-    
     if (!connectionString) {
-        throw new Error("FATAL: DATABASE_URL is undefined after ConfigModule load.");
+      this.logger.warn(
+        'DATABASE_URL not set. Prisma disabled.',
+      );
+      return;
     }
 
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
 
-    // 2. Call super() with the required parameters (adapter).
-    super({ adapter });
-
-    // 3. Now that super() is called, the private property `this.configService` is initialized.
-    //    No further code is needed here, as we only need configService for the initialization above.
+    this.prisma = new PrismaClient({ adapter });
+    this.logger.log('Prisma client created.');
   }
 
   async onModuleInit() {
-    await this.$connect();
+    if (!this.prisma) return;
+
+    try {
+      await this.prisma.$connect();
+      this.logger.log('Database connected.');
+    } catch (err) {
+      this.logger.error('Database connection failed', err);
+      throw err;
+    }
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
+    if (this.prisma) {
+      await this.prisma.$disconnect();
+    }
+  }
+
+  /**
+   * Safe accessor
+   */
+  get client(): PrismaClient {
+    if (!this.prisma) {
+      throw new Error(
+        'Prisma is not enabled. DATABASE_URL is missing.',
+      );
+    }
+    return this.prisma;
   }
 }
