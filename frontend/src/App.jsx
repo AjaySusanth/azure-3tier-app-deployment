@@ -4,7 +4,7 @@ function App() {
   const [apiResponse, setApiResponse] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:3001/health")
+    fetch("/api/health")
       .then(res => res.json())
       .then(data => setApiResponse(data))
       .catch(err => console.error(err));
@@ -12,7 +12,7 @@ function App() {
 
   return (
     <div>
-      <h1>Azure 3-Tier App</h1>
+      <h1>Azure 3-Tier App v11</h1>
       <p>Backend says: {apiResponse ? JSON.stringify(apiResponse) : "loading..."}</p>
     </div>
   );

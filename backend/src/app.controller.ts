@@ -16,7 +16,7 @@ export class AppController {
   }
   @Get('health')
   health() {
-    return { status: 'ok', message: 'backend running' };
+    return { status: 'ok', message: 'backend running v6' };
   }
 
   @Get('users')
