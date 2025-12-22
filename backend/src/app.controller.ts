@@ -19,8 +19,18 @@ export class AppController {
     return { status: 'ok', message: 'backend running v6' };
   }
 
+  @Get('ready')
+  async ready() {
+    try {
+      await this.prisma.client.$queryRaw`SELECT 1`;
+      return { status: 'ready' };
+    } catch (error) {
+      throw new Error('Databse not ready');
+    }
+  }
+
   @Get('users')
-async users() {
-  return this.prisma.client.user.findMany()
-}
+  async users() {
+    return this.prisma.client.user.findMany();
+  }
 }

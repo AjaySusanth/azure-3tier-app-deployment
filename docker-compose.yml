@@ -19,8 +19,8 @@ services:
       context: ./backend
     container_name: backend_service
     restart: always
-    #environment:
-      #DATABASE_URL: postgres://myuser:mypassword@postgres:5432/mydb
+    env_file:
+      - ./backend/.env
     ports:
       - "3001:3001"
     depends_on:
