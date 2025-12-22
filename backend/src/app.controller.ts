@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
+import { logger } from './logger/logger';
 
 
 @Controller()
@@ -30,7 +31,12 @@ export class AppController {
   }
 
   @Get('users')
-  async users() {
+  async users(@Req() req) {
+    logger.info({
+    requestId: req['requestId'],
+    route: '/users',
+    message: 'Fetching users',
+  });
     return this.prisma.client.user.findMany();
   }
 }
