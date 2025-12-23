@@ -5,12 +5,7 @@ on:
             - main
         paths:
           - 'backend/**'
-          - '.github/workflows/backend-deploy.yml'
-
-        paths-ignore:
-          - '**.md'            
-          - 'frontend/**'
-          - 'nginx/**'        
+          - '.github/workflows/backend-deploy.yml'       
 
 jobs:
     deploy-backend:
