@@ -22,14 +22,10 @@ jobs:
                 az acr login --name ${{ secrets.ACR_NAME }}
 
             - name: Build and push backend image
-              run: |
-                docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }} backend
-                docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
-
+              run: docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }} ./backend && docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+                
             - name: Build and push nginx image
-              run: |
-                docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }} -f nginx/Dockerfile .
-                docker push ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
+              run: docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }} -f nginx/Dockerfile . && docker push ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
 
             - name: Deploy backend
               run: |
