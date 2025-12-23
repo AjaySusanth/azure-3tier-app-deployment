@@ -8,10 +8,6 @@ on:
           - 'nginx/**'
           - '.github/workflows/frontend-deploy.yml'
 
-        paths-ignore:
-          - '**.md'            
-          - 'backend/**'        
-
 jobs:
     deploy-frontend:
         runs-on: ubuntu-latest
