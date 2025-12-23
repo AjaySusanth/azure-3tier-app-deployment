@@ -2,9 +2,10 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
+COPY prisma ./prisma
 RUN npm install
+RUN npx prisma generate
 COPY . .
-RUN DATABASE_URL="postgresql://user:password@localhost:5432/db" npx prisma generate
 RUN npm run build
 
 # Stage 2: Run
