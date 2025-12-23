@@ -1,0 +1,41 @@
+name: Deploy Frontend (Nginx)
+on:
+    push:
+        branches:
+            - main
+        paths:
+          - 'frontend/**'
+          - 'nginx/**'
+          - '.github/workflows/frontend-deploy.yml'
+
+        paths-ignore:
+          - '**.md'            
+          - 'backend/**'        
+
+jobs:
+    deploy-frontend:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            
+            - name: Log in to Azure
+              uses: azure/login@v1
+              with:
+                creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+            - name: Log in to ACR
+              run: az acr login --name ${{ secrets.ACR_NAME }}
+
+            - name: Build and push nginx image
+              run: docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }} -f nginx/Dockerfile . && docker push ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
+
+            - name: Deploy Nginx App
+              uses: azure/container-apps-deploy-action@v1
+              with:
+                acrName: ${{ secrets.ACR_NAME }}
+                containerAppName: ${{ secrets.NGINX_APP_NAME }}
+                resourceGroup: ${{ secrets.RESOURCE_GROUP }}
+                imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
+        

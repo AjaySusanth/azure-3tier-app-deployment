@@ -1,11 +1,19 @@
-name: Deploy to Azure Container Apps
+name: Deploy Backend
 on:
     push:
         branches:
             - main
-    workflow_dispatch:
+        paths:
+          - 'backend/**'
+          - '.github/workflows/backend-deploy.yml'
+
+        paths-ignore:
+          - '**.md'            
+          - 'frontend/**'
+          - 'nginx/**'        
+
 jobs:
-    deploy:
+    deploy-backend:
         runs-on: ubuntu-latest
 
         steps:
@@ -18,14 +26,10 @@ jobs:
                 creds: ${{ secrets.AZURE_CREDENTIALS }}
 
             - name: Log in to ACR
-              run: |
-                az acr login --name ${{ secrets.ACR_NAME }}
+              run: az acr login --name ${{ secrets.ACR_NAME }}
 
             - name: Build and push backend image
               run: docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }} ./backend && docker push ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
-                
-            - name: Build and push nginx image
-              run: docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }} -f nginx/Dockerfile . && docker push ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
 
             - name: Deploy Backend App
               uses: azure/container-apps-deploy-action@v1
@@ -34,13 +38,3 @@ jobs:
                 containerAppName: ${{ secrets.BACKEND_APP_NAME }}
                 resourceGroup: ${{ secrets.RESOURCE_GROUP }}
                 imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
-
-            - name: Deploy Nginx App
-              uses: azure/container-apps-deploy-action@v1
-              with:
-                acrName: ${{ secrets.ACR_NAME }}
-                containerAppName: ${{ secrets.NGINX_APP_NAME }}
-                resourceGroup: ${{ secrets.RESOURCE_GROUP }}
-                imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
-
-            
