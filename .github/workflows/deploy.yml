@@ -28,15 +28,9 @@ jobs:
               run: docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }} -f nginx/Dockerfile . && docker push ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
 
             - name: Deploy backend
-              run: az containerapp update \
-                  --name ${{ secrets.BACKEND_APP_NAME }} \
-                  --resource-group ${{ secrets.RESOURCE_GROUP }} \
-                  --image ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+              run: az containerapp update --name ${{ secrets.BACKEND_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP }} --image ${{ secrets.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
 
             - name: Deploy nginx
-              run: az containerapp update \
-                  --name ${{ secrets.NGINX_APP_NAME }} \
-                  --resource-group ${{ secrets.RESOURCE_GROUP }} \
-                  --image ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
+              run: az containerapp update --name ${{ secrets.NGINX_APP_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP }} --image ${{ secrets.ACR_NAME }}.azurecr.io/nginx:${{ github.sha }}
 
             
