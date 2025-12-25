@@ -112,6 +112,107 @@ These are used by Azure Container Apps to:
 
 ---
 
+## 📈 Autoscaling (Azure Container Apps – KEDA)
+
+This project includes **production-style autoscaling**, implemented and **validated under real load**, not just configured.
+
+Autoscaling is powered by **Azure Container Apps’ built-in KEDA integration**, using **HTTP concurrency–based scaling**.
+
+---
+
+### Autoscaling Strategy
+
+Autoscaling was intentionally configured **differently for each tier**, based on real-world behavior:
+
+| Component      | Min Replicas | Max Replicas | Scaling Trigger       | Reasoning                                |
+| -------------- | ------------ | ------------ | --------------------- | ---------------------------------------- |
+| Backend API    | 0            | 3            | HTTP concurrency (20) | Cost-efficient, internal-only, stateless |
+| NGINX Frontend | 1            | 3            | HTTP concurrency (50) | Avoid user-facing cold starts            |
+
+---
+
+### Why HTTP Concurrency (Not CPU)
+
+Instead of CPU-based scaling, the system scales on **concurrent in-flight HTTP requests**.
+
+This provides:
+
+* Faster reaction to real traffic
+* Better alignment with API pressure
+* Avoidance of over-scaling on short CPU spikes
+
+Autoscaling reacts only to **sustained load**, not request bursts.
+
+---
+
+### Scale-to-Zero (Backend)
+
+The backend API is configured with:
+
+```text
+minReplicas = 0
+```
+
+This enables:
+
+* Automatic shutdown when idle
+* Zero compute cost during inactivity
+* Cold-start behavior on first request
+
+Cold starts were **observed and accepted intentionally**, as the backend is internal and fronted by NGINX.
+
+---
+
+### Autoscaling Validation (Learning Process)
+
+Autoscaling behavior was **tested and observed step-by-step**:
+
+1. **Idle State**
+
+   * Backend scaled down to `0` replicas after cooldown
+2. **Cold Start**
+
+   * First `/api` request triggered backend scale-up
+3. **Burst Traffic**
+
+   * Short-lived request bursts did **not** trigger scaling
+4. **Sustained Load**
+
+   * Sustained concurrent requests caused backend to scale to `2` replicas
+5. **Scale Down**
+
+   * After traffic stopped, backend automatically returned to `0` replicas
+
+This demonstrated an important production insight:
+
+> Autoscaling responds to **sustained concurrency**, not request count or short bursts.
+
+---
+
+### Observed Behavior (Key Learnings)
+
+* Fast endpoints may not trigger scaling unless load is sustained
+* Autoscaling decisions are evaluated over polling intervals
+* Azure avoids scale thrashing by design
+* Frontend and backend scale **independently**
+* Failed or unhealthy revisions never receive traffic
+
+---
+
+### Why This Matters
+
+This autoscaling setup ensures:
+
+* Cost-efficient idle behavior
+* Automatic recovery under load
+* No manual scaling intervention
+* Safe production rollouts
+
+The system behaves predictably under real traffic conditions, not just synthetic tests.
+
+---
+
+
 ## 📊 Observability & Logging
 
 ### Structured Logging
